@@ -73,11 +73,11 @@ func (store Emotestore) Init() {
 func (store Emotestore) GetEmoteRecord(name string) (emote.Emote, error) {
 	var emoteObj emote.Emote
 	dat, err := ioutil.ReadFile(store.getEmotePath(name + ".json"))
-	if err == nil {
-		json.Unmarshal(dat, &emoteObj)
-		return emoteObj, nil
+	if err != nil {
+		return emoteObj, errors.New("Emote not found with that name")
 	}
-	return emoteObj, errors.New("Emote not found with that name")
+	json.Unmarshal(dat, &emoteObj)
+	return emoteObj, nil
 }
 
 // AllEmotes list the emotes in the local datastore
@@ -89,11 +89,11 @@ func (store Emotestore) AllEmotes() []emote.Emote {
 func (store Emotestore) GetEmoteFileContents(name string) ([]byte, error) {
 	var result []byte
 	emote, err := store.GetEmoteRecord(name)
-	if err == nil {
-		result, _ := ioutil.ReadFile(filepath.Join(store.localDataPath(), emote.Filename))
-		return result, nil
+	if err != nil {
+		return result, errors.New("Error reading file contents")
 	}
-	return result, errors.New("Error reading file contents")
+	result, _ = ioutil.ReadFile(filepath.Join(store.localDataPath(), emote.Filename))
+	return result, nil
 }
 
 // StoreNewEmote write a new emote to the datastore

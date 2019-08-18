@@ -27,10 +27,10 @@ func main() {
 		name := vars["name"]
 		result, err := store.GetEmoteRecord(name)
 		if err == nil {
-			json.NewEncoder(w).Encode(result)
-		} else {
 			w.WriteHeader(404)
+			return
 		}
+		json.NewEncoder(w).Encode(result)
 	})
 
 	r.HandleFunc("/local/{name}", func(w http.ResponseWriter, r *http.Request) {
@@ -38,21 +38,20 @@ func main() {
 		name := vars["name"]
 		result, err := store.GetEmoteFileContents(name)
 		if err == nil {
-			w.Write(result)
-		} else {
 			w.WriteHeader(404)
+			return
 		}
+		w.Write(result)
 	})
 
 	r.HandleFunc("/local", func(w http.ResponseWriter, r *http.Request) {
 		file, header, err := r.FormFile("file")
 		result, err := store.StoreNewEmote(r.FormValue("name"), r.FormValue("credit"), file, *header)
-		if err == nil {
-			json.NewEncoder(w).Encode(result)
-		} else {
+		if err != nil {
 			w.WriteHeader(403)
 			w.Write([]byte(err.Error()))
 		}
+		json.NewEncoder(w).Encode(result)
 	}).Methods("PUT")
 
 	http.ListenAndServe(":80", r)
